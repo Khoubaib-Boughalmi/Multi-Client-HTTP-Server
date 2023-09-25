@@ -4,7 +4,9 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
+#include <errno.h>
 
 int createIPV4Socket() ;
-struct sockaddr_in *createIPV4Address(void) ;
+struct sockaddr_in *createIPV4Address(char *ip, int port) ;
 int connectSocket(int sockfd, struct sockaddr_in *addr) ;
