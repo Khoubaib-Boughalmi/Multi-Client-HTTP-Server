@@ -1,7 +1,7 @@
 CC=gcc
 CLIENT_NAME=CLIENT
 SERVER_NAME=SERVER
-CFLAGS=-Wall -Wextra -Werror 
+CFLAGS=-Wall -Wextra -Werror -fsanitize=address
 
 CLIENT_SRC= client.c \
 	 utils.c \
