@@ -69,6 +69,7 @@ void receiveIncommingRequestAndRespond (int clientSocketFd) {
         }
         else {
             printf("Unknown Request\n");
+            bytesSent = -1;
         }
         if(bytesSent < 0) {
             perror("send error");
@@ -76,4 +77,29 @@ void receiveIncommingRequestAndRespond (int clientSocketFd) {
         }
         printf("send success\n");
     }
+}
+
+void startAcceptingIncomingConnections(int serverSocketFd) {
+    t_acceptSocket *acceptedSocket = acceptSocket(serverSocketFd);
+    if(!acceptedSocket) {
+        shutdown(serverSocketFd, SHUT_RDWR);
+        perror("accept error");
+        // return (-1);
+    }
+
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, acceptReceiveAndRespond, serverSocketFd);
+    
+}
+
+void receiveIncommingRequestAndRespondSeperateThread(int clientSocketFd) {
+    receiveIncommingRequestAndRespond (clientSocketFd);
+    close(clientSocketFd);   
+}
+
+void acceptReceiveAndRespond(int serverSocketFd) {
+  
+    //receiving and responding
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, &receiveIncommingRequestAndRespondSeperateThread, serverSocketFd);
 }
