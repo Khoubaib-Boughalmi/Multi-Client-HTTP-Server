@@ -8,13 +8,21 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <signal.h>
 
 typedef struct s_acceptSocket {
-    int clientSocketFd;
-    struct sockaddr_in *clientAddress;
     int error;
+    int clientSocketFd;
     bool fullyAccepted;
+    struct sockaddr_in *clientAddress;
 } t_acceptSocket;
+
+extern t_acceptSocket *acceptedSocket;
+
+typedef struct s_serverInfo {
+    int serverSocketFd;
+    struct sockaddr_in  *serverAddress;
+} t_serverInfo;
 
 
 int createIPV4Socket() ;

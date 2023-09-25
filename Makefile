@@ -3,11 +3,13 @@ CLIENT_NAME=CLIENT
 SERVER_NAME=SERVER
 CFLAGS=-Wall -Wextra -Werror -fsanitize=address
 
-CLIENT_SRC= client.c \
-	 utils.c \
+CLIENT_SRC=	client.c \
+			sharedUtils.c \
+			clientUtils.c \
 
-SERVER_SRC= server.c \
-	 utils.c \
+SERVER_SRC=	server.c \
+			sharedUtils.c \
+			serverUtils.c \
 
 CLIENT_OBJ=$(CLIENT_SRC:.c=.o)
 SERVER_OBJ=$(SERVER_SRC:.c=.o)

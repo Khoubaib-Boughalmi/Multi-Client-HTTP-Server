@@ -1,45 +1,22 @@
 #include "GCS.h"
 
-int createIPV4Socket(void) {
-    int sockfd;
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    return (sockfd);
-}
-
-struct sockaddr_in *createIPV4Address(char *ip, int port) {
-    struct sockaddr_in *addr = malloc(sizeof(struct sockaddr_in));
-
-    addr->sin_family = AF_INET;
-    addr->sin_port = htons(port);
-    if (ip == NULL)
-        addr->sin_addr.s_addr = htonl(INADDR_ANY);
-    else
-        inet_pton(AF_INET, ip, &addr->sin_addr.s_addr);
-    return addr;
-}
-
-int connectSocket(int sockfd, struct sockaddr_in *addr) {
-    int res = connect(sockfd, (struct sockaddr *)addr, sizeof(*addr));
-    return (res);
-}
-
 t_acceptSocket *acceptSocket(int serverSocketFd) {
-    t_acceptSocket *acceptedSocket = malloc(sizeof(t_acceptSocket));
-    acceptedSocket->clientAddress = NULL;
-    socklen_t clientAddressLen = sizeof(*acceptedSocket->clientAddress);
-    acceptedSocket->clientSocketFd = accept(serverSocketFd, (struct sockaddr *)acceptedSocket->clientAddress, &clientAddressLen);
+    t_acceptSocket *localAcceptedSocket = malloc(sizeof(t_acceptSocket));
+    localAcceptedSocket->clientAddress = NULL;
+    socklen_t clientAddressLen = sizeof(*localAcceptedSocket->clientAddress);
+    localAcceptedSocket->clientSocketFd = accept(serverSocketFd, (struct sockaddr *)localAcceptedSocket->clientAddress, &clientAddressLen);
 
-    if (acceptedSocket->clientSocketFd < 0) {
-        acceptedSocket->error = acceptedSocket->clientSocketFd;
-        acceptedSocket->fullyAccepted = false;
+    if (localAcceptedSocket->clientSocketFd < 0) {
+        localAcceptedSocket->error = localAcceptedSocket->clientSocketFd;
+        localAcceptedSocket->fullyAccepted = false;
         perror("accept error");
-        free(acceptedSocket);
+        free(localAcceptedSocket);
         return (NULL);
     }
-    printf("accept success, Client Fd: %d\n", acceptedSocket->clientSocketFd);
-    acceptedSocket->error = 0;
-    acceptedSocket->fullyAccepted = true;
-    return  (acceptedSocket);
+    printf("accept success, Client Fd: %d\n", localAcceptedSocket->clientSocketFd);
+    localAcceptedSocket->error = 0;
+    localAcceptedSocket->fullyAccepted = true;
+    return  (localAcceptedSocket);
 }
 
 void receiveIncommingRequestAndRespond (int clientSocketFd) {
@@ -85,7 +62,7 @@ void receiveIncommingRequestAndRespond (int clientSocketFd) {
 void *startAcceptingIncomingConnections(int serverSocketFd) {
     while (1)
     {
-        t_acceptSocket *acceptedSocket = acceptSocket(serverSocketFd);
+        acceptedSocket = acceptSocket(serverSocketFd);
         if(!acceptedSocket) {
             shutdown(serverSocketFd, SHUT_RDWR);
             perror("accept error");

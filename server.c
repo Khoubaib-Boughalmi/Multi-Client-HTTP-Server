@@ -1,32 +1,58 @@
 #include "GCS.h"
 
-int main() {
+t_serverInfo *serverInfo;
+t_acceptSocket *acceptedSocket = NULL;
 
-    int serverSocketFd = createIPV4Socket();
-    if (serverSocketFd < 0) {
+// handle SIGINT => shutdown(serverSocketFd, SHUT_RDWR) & free(serverAddress)
+
+void cleanUpAndExit(int serverSocketFd, struct sockaddr_in *serverAddress) {
+    shutdown(serverSocketFd, SHUT_RDWR);
+    free(serverAddress);
+    free(serverInfo);
+    free(acceptedSocket->clientAddress);
+    free(acceptedSocket);
+    exit(1);
+}
+
+void handle_sigint(int sig) {
+    printf("Server Has Been Terminated %d\n", sig);
+    cleanUpAndExit(serverInfo->serverSocketFd, serverInfo->serverAddress);
+}
+
+int main() {
+    serverInfo = malloc(sizeof(t_serverInfo));
+    serverInfo->serverSocketFd = createIPV4Socket();
+    if (serverInfo->serverSocketFd < 0) {
         perror("socket error");
         return (-1);
     }
-    struct sockaddr_in *serverAddress = createIPV4Address(NULL, 8080);
-    socklen_t serverAddressLen = sizeof(*serverAddress);
+    
+    serverInfo->serverAddress = createIPV4Address(NULL, 8080);
+    socklen_t serverAddressLen = sizeof(*serverInfo->serverAddress);
+    //signal handling for SIGINT
+    if (signal(SIGINT, handle_sigint) == SIG_ERR) {
+        perror("Signal handler installation failed");
+        cleanUpAndExit(serverInfo->serverSocketFd, serverInfo->serverAddress);
+    }
   
     //binding
-    int bindRes = bind(serverSocketFd, (struct sockaddr *)serverAddress, serverAddressLen);
+    int bindRes = bind(serverInfo->serverSocketFd, (struct sockaddr *)serverInfo->serverAddress, serverAddressLen);
     if (bindRes < 0) {
-        free(serverAddress);
+        free(serverInfo->serverAddress);
         perror("bind error");
         return (-1);
     }
     //listening
-    int listenRes = listen(serverSocketFd, 10);
+    int listenRes = listen(serverInfo->serverSocketFd, 10);
     if (listenRes < 0) {
         perror("listen error");
         return (-1);
     }
     //accepting
-    startAcceptingIncomingConnections(serverSocketFd);
+    startAcceptingIncomingConnections(serverInfo->serverSocketFd);
     
-    shutdown(serverSocketFd, SHUT_RDWR);
-    free(serverAddress);
+    shutdown(serverInfo->serverSocketFd, SHUT_RDWR);
+    free(serverInfo->serverAddress);
+    free(serverInfo);
     return (0); 
 }
