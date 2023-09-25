@@ -7,10 +7,9 @@ int main() {
         perror("socket error");
         return (-1);
     }
-    struct sockaddr_in *ClientAddress = NULL;
     struct sockaddr_in *serverAddress = createIPV4Address(NULL, 8080);
     socklen_t serverAddressLen = sizeof(*serverAddress);
-    socklen_t ClientAddressLen = sizeof(*ClientAddress);
+  
     int bindRes = bind(serverSocketFd, (struct sockaddr *)serverAddress, serverAddressLen);
     if (bindRes < 0) {
         perror("bind error");
@@ -23,17 +22,18 @@ int main() {
     }
     char *getResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>GET response</h1></body></html>";
     char *postResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>POST response</h1></body></html>";
-    int clientSocketFd = accept(serverSocketFd, (struct sockaddr *)ClientAddress, &ClientAddressLen);
-    if (clientSocketFd < 0) {
+    t_acceptSocket *acceptedSocket = acceptSocket(serverSocketFd);
+    if(!acceptedSocket) {
+        free(serverAddress);
+        shutdown(serverSocketFd, SHUT_RDWR);
         perror("accept error");
         return (-1);
     }
-    printf("accept success, Client Fd: %d\n", clientSocketFd);
     char httpReq[8192] = "";
     while (1)
     {
         memset(httpReq, 0, sizeof(httpReq));
-        int bytesRecv = recv(clientSocketFd, httpReq, sizeof(httpReq), 0);
+        int bytesRecv = recv(acceptedSocket->ClientSocketFd, httpReq, sizeof(httpReq), 0);
         if(!bytesRecv || bytesRecv < 0) {
             if(bytesRecv < 0)
                 perror("recv error");
@@ -46,10 +46,10 @@ int main() {
         char *postReq = strnstr(httpReq, "POST", 4);
         int bytesSent = 0;
         if(getReq != NULL) {
-            bytesSent = send(clientSocketFd, getResponse, strlen(getResponse), 0);
+            bytesSent = send(acceptedSocket->ClientSocketFd, getResponse, strlen(getResponse), 0);
         }
         else if(postReq != NULL) {
-            bytesSent = send(clientSocketFd, postResponse, strlen(postResponse), 0);
+            bytesSent = send(acceptedSocket->ClientSocketFd, postResponse, strlen(postResponse), 0);
         }
         else {
             printf("Unknown Request\n");
@@ -60,8 +60,8 @@ int main() {
         }
         printf("send success\n");
     }
-    close(clientSocketFd);
     free(serverAddress);
+    close(acceptedSocket->ClientSocketFd);
     shutdown(serverSocketFd, SHUT_RDWR);
     return (0); 
 }

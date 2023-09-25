@@ -22,3 +22,22 @@ int connectSocket(int sockfd, struct sockaddr_in *addr) {
     int res = connect(sockfd, (struct sockaddr *)addr, sizeof(*addr));
     return (res);
 }
+
+t_acceptSocket *acceptSocket(int serverSocketFd) {
+    t_acceptSocket *acceptedSocket = malloc(sizeof(t_acceptSocket));
+    acceptedSocket->ClientAddress = NULL;
+    socklen_t ClientAddressLen = sizeof(*acceptedSocket->ClientAddress);
+    acceptedSocket->ClientSocketFd = accept(serverSocketFd, (struct sockaddr *)acceptedSocket->ClientAddress, &ClientAddressLen);
+
+    if (acceptedSocket->ClientSocketFd < 0) {
+        acceptedSocket->error = acceptedSocket->ClientSocketFd;
+        acceptedSocket->fullyAccepted = false;
+        perror("accept error");
+        free(acceptedSocket);
+        return (NULL);
+    }
+    printf("accept success, Client Fd: %d\n", acceptedSocket->ClientSocketFd);
+    acceptedSocket->error = 0;
+    acceptedSocket->fullyAccepted = true;
+    return  (acceptedSocket);
+}
