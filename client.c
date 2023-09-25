@@ -1,6 +1,6 @@
 #include "GCS.h"
 
-//POST /path/to/resource HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 15\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\nname=John&age=30\r\n
+//GET / HTTP/1.1\r\nHost: www.boobs.com\r\n\r\n
 //GET / HTTP/1.1\r\nHost: www.boobs.com\r\n\r\n
 
 int main(void) {
