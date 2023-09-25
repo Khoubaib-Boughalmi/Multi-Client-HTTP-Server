@@ -13,6 +13,7 @@ int main() {
     //binding
     int bindRes = bind(serverSocketFd, (struct sockaddr *)serverAddress, serverAddressLen);
     if (bindRes < 0) {
+        free(serverAddress);
         perror("bind error");
         return (-1);
     }

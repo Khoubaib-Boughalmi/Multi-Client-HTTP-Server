@@ -23,6 +23,5 @@ int connectSocket(int sockfd, struct sockaddr_in *addr) ;
 
 t_acceptSocket *acceptSocket(int serverSocketFd) ;
 void receiveIncommingRequestAndRespond (int clientSocketFd) ;
-void startAcceptingIncomingConnections(int serverSocketFd) ;
-void acceptReceiveAndRespond(int serverSocketFd) ;
-void receiveIncommingRequestAndRespondSeperateThread(int acceptedSocket) ;
+void *startAcceptingIncomingConnections(int serverSocketFd) ;
+void *receiveAndRespond(void *clientSocketFd) ;

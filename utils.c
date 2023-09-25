@@ -54,12 +54,15 @@ void receiveIncommingRequestAndRespond (int clientSocketFd) {
             if(bytesRecv < 0)
                 perror("recv error");
             else
+            {
+                close(clientSocketFd);
                 printf("Client closed connection\n");
+            }
             break;
         }
         printf("Client's Request: %s", httpReq);
-        char *getReq = strnstr(httpReq, "GET", 3);
-        char *postReq = strnstr(httpReq, "POST", 4);
+        char *getReq = strstr(httpReq, "GET");
+        char *postReq = strstr(httpReq, "POST");
         int bytesSent = 0;
         if(getReq != NULL) {
             bytesSent = send(clientSocketFd, getResponse, strlen(getResponse), 0);
@@ -79,27 +82,26 @@ void receiveIncommingRequestAndRespond (int clientSocketFd) {
     }
 }
 
-void startAcceptingIncomingConnections(int serverSocketFd) {
-    t_acceptSocket *acceptedSocket = acceptSocket(serverSocketFd);
-    if(!acceptedSocket) {
-        shutdown(serverSocketFd, SHUT_RDWR);
-        perror("accept error");
-        // return (-1);
+void *startAcceptingIncomingConnections(int serverSocketFd) {
+    while (1)
+    {
+        t_acceptSocket *acceptedSocket = acceptSocket(serverSocketFd);
+        if(!acceptedSocket) {
+            shutdown(serverSocketFd, SHUT_RDWR);
+            perror("accept error");
+            return (NULL);   
+        }
+        pthread_t thread_id;
+        pthread_create(&thread_id, NULL, receiveAndRespond, &(acceptedSocket->clientSocketFd));
     }
-
-    pthread_t thread_id;
-    pthread_create(&thread_id, NULL, acceptReceiveAndRespond, serverSocketFd);
-    
+    return (NULL);   
 }
 
-void receiveIncommingRequestAndRespondSeperateThread(int clientSocketFd) {
-    receiveIncommingRequestAndRespond (clientSocketFd);
-    close(clientSocketFd);   
-}
-
-void acceptReceiveAndRespond(int serverSocketFd) {
+void *receiveAndRespond(void *clientSocketFd_arg) {
   
     //receiving and responding
-    pthread_t thread_id;
-    pthread_create(&thread_id, NULL, &receiveIncommingRequestAndRespondSeperateThread, serverSocketFd);
+    int clientSocketFd = *(int *)clientSocketFd_arg;
+    receiveIncommingRequestAndRespond (clientSocketFd);
+    close(clientSocketFd);   
+    return (NULL);
 }

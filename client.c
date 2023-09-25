@@ -1,6 +1,6 @@
 #include "GCS.h"
 
-//GET / HTTP/1.1\r\nHost: www.boobs.com\r\n\r\n
+//POST /path/to/resource HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 15\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\nname=John&age=30\r\n
 //GET / HTTP/1.1\r\nHost: www.boobs.com\r\n\r\n
 
 int main(void) {
@@ -13,13 +13,14 @@ int main(void) {
     struct sockaddr_in *addr = createIPV4Address("127.0.0.1", 8080);
     int res = connectSocket(sockfd, addr);
     if (res < 0) {
+        free(addr);
         perror("connect error");
         return (-1);
     }
     printf("connect success\n");
 
     char *httpReq = NULL;
-    size_t httpReqRead = 0;
+    int httpReqRead = 0;
     size_t httpReqSize = 0;
     while (1)
     {
@@ -30,6 +31,7 @@ int main(void) {
             break;
         }
         if(!strcmp(httpReq, "exit\n")) {
+            free(httpReq);
             printf("adios\n");
             break;
         }
@@ -39,6 +41,7 @@ int main(void) {
         int bytesRecv = recv(sockfd, httpRes, sizeof(httpRes), 0);
         if(bytesRecv < 0) {
             perror("recv error");
+            free(httpReq);
             break;
         }
         printf("HTTP response: %s\n", httpRes);
