@@ -34,8 +34,11 @@ int main() {
     {
         memset(httpReq, 0, sizeof(httpReq));
         int bytesRecv = recv(clientSocketFd, httpReq, sizeof(httpReq), 0);
-        if(bytesRecv <= 0) {
-            perror("recv error");
+        if(!bytesRecv || bytesRecv < 0) {
+            if(bytesRecv < 0)
+                perror("recv error");
+            else
+                printf("Client closed connection\n");
             break;
         }
         printf("Client's Request: %s", httpReq);

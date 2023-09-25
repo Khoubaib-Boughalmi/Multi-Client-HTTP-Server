@@ -45,7 +45,6 @@ int main(void) {
         free(httpReq);
         httpReq = NULL;
     }
-    printf("OUT HERE\n");
     close(sockfd);
     free(addr);
     return (0);
