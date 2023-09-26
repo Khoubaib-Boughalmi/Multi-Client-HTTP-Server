@@ -20,8 +20,8 @@ t_acceptSocket *acceptSocket(int serverSocketFd) {
 }
 
 void receiveIncommingRequestAndRespond (int clientSocketFd) {
-    char httpReq[8192] = "";
-    char *getResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>GET response</h1></body></html>";
+    char httpReq[32768] = "";
+    char *getResponse = "HTTP/1.1 200 OK\r\nDate: Sat, 24 Sep 2023 12:00:00 GMT\r\nContent-Type: text/html\r\nConnection: keep-alive\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>Sample Page</title>\r\n<style>body {background-color: #f0f0f0;margin: 0;padding: 0;}h1 {color: blue;}p {color: red;}</style>\r\n</head>\r\n<body>\r\n<h1>Hello, World!</h1>\r\n<p>This is a sample page.</p>\r\n</body>\r\n</html>\r\n";
     char *postResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>POST response</h1></body></html>";
     while (1)
     {
@@ -56,6 +56,7 @@ void receiveIncommingRequestAndRespond (int clientSocketFd) {
             break;
         }
         printf("send success\n");
+        close(clientSocketFd);
     }
 }
 
@@ -79,6 +80,5 @@ void *receiveAndRespond(void *clientSocketFd_arg) {
     //receiving and responding
     int clientSocketFd = *(int *)clientSocketFd_arg;
     receiveIncommingRequestAndRespond (clientSocketFd);
-    close(clientSocketFd);   
     return (NULL);
 }

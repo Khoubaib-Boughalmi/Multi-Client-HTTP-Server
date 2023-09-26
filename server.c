@@ -6,10 +6,15 @@ t_acceptSocket *acceptedSocket = NULL;
 // handle SIGINT => shutdown(serverSocketFd, SHUT_RDWR) & free(serverAddress)
 void cleanUpAndExit(int serverSocketFd, struct sockaddr_in *serverAddress) {
     shutdown(serverSocketFd, SHUT_RDWR);
-    free(serverAddress);
-    free(serverInfo);
-    free(acceptedSocket->clientAddress);
-    free(acceptedSocket);
+    if (serverAddress)
+        free(serverAddress);
+    if (serverInfo)
+        free(serverInfo);
+    if (acceptedSocket) {
+        if (acceptedSocket->clientAddress)
+            free(acceptedSocket->clientAddress);
+        free(acceptedSocket);
+    }
     exit(1);
 }
 
