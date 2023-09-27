@@ -6,6 +6,15 @@
 int main(void) {
     while (1)
     {
+        char *httpReq = NULL;
+        int httpReqRead = 0;
+        size_t httpReqSize = 0;
+        printf("HTTP Request: ");
+        httpReqRead = getline(&httpReq, &httpReqSize, stdin);
+        if(httpReqRead < 0) {
+            perror("getline error");
+            break;
+        }
         int sockfd;
         sockfd = createIPV4Socket();
         if (sockfd < 0) {
@@ -21,15 +30,6 @@ int main(void) {
         }
         printf("connect success\n");
 
-        char *httpReq = NULL;
-        int httpReqRead = 0;
-        size_t httpReqSize = 0;
-        printf("HTTP Request: ");
-        httpReqRead = getline(&httpReq, &httpReqSize, stdin);
-        if(httpReqRead < 0) {
-            perror("getline error");
-            break;
-        }
         if(!strcmp(httpReq, "exit\n")) {
             free(httpReq);
             printf("adios\n");

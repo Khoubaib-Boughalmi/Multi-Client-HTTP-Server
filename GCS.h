@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 typedef struct s_acceptSocket {
     int error;

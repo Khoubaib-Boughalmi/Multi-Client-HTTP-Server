@@ -19,7 +19,9 @@ t_acceptSocket *acceptSocket(int serverSocketFd) {
     return  (localAcceptedSocket);
 }
 
+
 void receiveIncommingRequestAndRespond (int clientSocketFd) {
+    int clientSocketFdCopy = clientSocketFd;
     char httpReq[32768] = "";
     char *getResponse = "HTTP/1.1 200 OK\r\nDate: Sat, 24 Sep 2023 12:00:00 GMT\r\nContent-Type: text/html\r\nConnection: keep-alive\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>Sample Page</title>\r\n<style>body {background-color: #f0f0f0;margin: 0;padding: 0;}h1 {color: blue;}p {color: red;}</style>\r\n</head>\r\n<body>\r\n<h1>Hello, World!</h1>\r\n<p>This is a sample page.</p>\r\n</body>\r\n</html>\r\n";
     char *postResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>POST response</h1></body></html>";
@@ -57,10 +59,11 @@ void receiveIncommingRequestAndRespond (int clientSocketFd) {
     }
     if(bytesSent < 0) {
         perror("send error");
-        return;
+        return ;
     }
     printf("send success\n");
     close(clientSocketFd);
+    exit (clientSocketFdCopy);
 }
 
 void *startAcceptingIncomingConnections(int serverSocketFd) {
@@ -73,12 +76,24 @@ void *startAcceptingIncomingConnections(int serverSocketFd) {
             return (NULL);   
         }
         printf("Client FD %d\n", acceptedSocket->clientSocketFd);
-        pthread_t thread_id;
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        // Set the thread as detached
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-        pthread_create(&thread_id, &attr, receiveAndRespond, &(acceptedSocket->clientSocketFd));
+        int child_pid = fork();
+        if (child_pid == -1) {
+            perror("fork");
+            return (NULL);
+        }
+        if(child_pid == 0) {
+            receiveIncommingRequestAndRespond(acceptedSocket->clientSocketFd);
+        }
+        else {
+            int status;
+            waitpid(child_pid, &status, 0);
+            printf("Child exited with status %d\n", status);
+            if (WIFEXITED(status)) {
+                int received_data = WEXITSTATUS(status);
+                printf("Parent received: %d\n", received_data);
+                close(received_data);
+            }
+        } 
     }
     return (NULL);   
 }
